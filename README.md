@@ -1,12 +1,12 @@
 # Integrated PDF Citation Verification Workflow
 
-This repository implements an integrated workflow for verifying the consistency and integrity of citations in PDF documents. The workflow is designed to:
+This repository implements an integrated workflow for verifying the consistency and integrity of citations within and across academic records. The workflow is designed to:
 
 - **Extract bibliographic and in-text citation data** from PDFs.
 - **Match in-text citations to bibliography entries**.
-- **Verify DOI presence** in bibliography items.
-- **Validate DOI existence** and download corresponding articles when available.
-- **Compare citing sentences against cited articles** to ensure that the context of citations is accurate.
+- **Verify DOI presence** of bibliography items.
+- **Validate DOI existence** and download corresponding records when available.
+- **Compare citing sentences against cited articles** using NLI models to test that citing claims are correctly supported.
 
 ## Overview
 
@@ -20,19 +20,22 @@ The workflow is composed of several modules that work together in a sequential p
    - **match-cit-to-bib.py**: Ensures that every in-text citation found in the document has a corresponding entry in the bibliography.  
      *The module’s embedded documentation describes its method for flagging mismatches.*
 
-3. **DOI Verification and Article Retrieval**:  
-   - **retrieve.py**: Checks each bibliography item for a DOI, verifies its validity, and downloads the corresponding article if available.  
-     *According to its documentation, error handling is built in to manage missing or invalid DOIs.*
+3. **Result Consolidation**:  
+   - **consolidate.py**: Uses Unpaywall, Crossref and OpenAlex to try and match bibliography items to DOIs. 
+     *If unpaywall reports a link, it records the link.*
 
-4. **Contextual Verification**:  
+4. **DOI Verification and Article Retrieval**:  
+   - **retrieve.py**: Checks each bibliography item to see if the DOI points to a record that exists.  
+     *Uses head from Crossref and Unpaywall. Has script for google scholar commented out*
+
+5. **Contextual Verification**:  
    - **match-citing-to-cited.py**: Matches citing sentences from the PDF with content from the cited articles.  
-     *The embedded documentation explains that this step confirms the proper use of citations.*  
-   - **nli-checking.py**: Uses Natural Language Inference (NLI) to evaluate whether the semantic content of the citing sentences aligns with the cited material.  
-     *This module’s documentation details its role in deep contextual verification.*
+     *Produces a CSV that lists citation id, citing sentence text and cited article filename.*
 
-5. **Result Consolidation**:  
-   - **consolidate.py**: Aggregates outputs from the previous modules into a comprehensive report, highlighting mismatches, missing DOIs, or semantic discrepancies.  
-     *The final module’s documentation underscores its role in compiling all results for review.*
+6. **Entailment Checking**
+   - **nli-checking.py**: Uses Natural Language Inference (NLI) to evaluate whether there is supporting content in the cited record for the citing sentence.   
+     *Gradio interface. Requires pasting the citing sentence, editing for consistency with NLI expectations, pasting of full text of TEI, model selection and rolling window size selection.*
+
 
 ## Integrated Workflow Explanation
 
@@ -47,14 +50,18 @@ The entire workflow operates as a cohesive, integrated pipeline:
 3. **Citation Matching**:  
    - Execute **match-cit-to-bib.py** to ensure that each in-text citation corresponds to an entry in the bibliography.
 
-4. **DOI Verification and Retrieval**:  
-   - Use **retrieve.py** to examine bibliography items for DOIs. This module checks DOI validity and downloads the associated articles when possible, handling any errors (e.g., missing or invalid DOIs) as specified in its embedded documentation.
+4. **Result Consolidation**:  
+   - Use, **consolidate.py** to get DOIs for bib items.
 
-5. **Contextual Analysis**:  
-   - Run **match-citing-to-cited.py** and **nli-checking.py** to compare the citing sentences against the downloaded articles, confirming that the citation context is accurate.
+5. **DOI Verification and Retrieval**:  
+   - Use **retrieve.py** to retrieve bib items
 
-6. **Result Consolidation**:  
-   - Finally, **consolidate.py** collects all the outputs and generates a final report that summarizes the verification process, detailing any discrepancies or issues.
+6. **Match citing sentences to cited records**:  
+   - Run **match-citing-to-cited.py**
+  
+7. **Check entailment**
+   - Run **nli-checking.py** to iterate through citing sentences to see if there is supporting assertions in the cited records 
+
 
 ## Usage Instructions
 
@@ -65,22 +72,7 @@ The entire workflow operates as a cohesive, integrated pipeline:
     ```
 
 2. **Install Dependencies**:  
-   Follow the instructions in the repository’s documentation to install all required dependencies.
+   no requirements.txt yet...noted in info for each script
 
 3. **Run the Workflow**:  
-   Execute the modules sequentially or use an automation script to run the entire pipeline:
-    ```bash
-    python grobid-folder.py <input-pdfs>
-    python match-cit-to-bib.py
-    python retrieve.py
-    python match-citing-to-cited.py
-    python nli-checking.py
-    python consolidate.py
-    ```
-
-4. **Review the Report**:  
-   After running the workflow, open the generated report to review:
-   - Any mismatches between in-text citations and bibliography entries.
-   - DOI issues, such as missing or invalid DOIs.
-   - Discrepancies between citing sentences and the content of the cited articles.
 
