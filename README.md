@@ -5,9 +5,9 @@ This repository is an integrated workflow for verifying the consistency and inte
 - **Extract bibliographic and in-text citation data** from PDFs.
 - **Match in-text citations to bibliography entries**.
 - **Verify DOI presence** of bibliography items.
-- **Validate DOI existence** and download corresponding records when available.
-- **Compare citing sentences against cited articles** using NLI models to test that citing claims are correctly supported.
-- - **Generate training data for NLI models** Capture the decisions made by users in a JSON log.
+- **Test existence of DOI indicated record** and download when available.
+- **Compare citing sentences to cited articles** using NLI models to test for support.
+- **Capture the decisions made** in a JSON log to a) train NLI models, b) document integrity of the academic record.
 
 ## Overview
 
