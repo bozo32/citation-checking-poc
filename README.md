@@ -1,12 +1,13 @@
 # Integrated PDF Citation Verification Workflow
 
-This repository implements an integrated workflow for verifying the consistency and integrity of citations within and across academic records. The workflow is designed to:
+This repository is an integrated workflow for verifying the consistency and integrity of citations within and across academic records. The workflow is designed to:
 
 - **Extract bibliographic and in-text citation data** from PDFs.
 - **Match in-text citations to bibliography entries**.
 - **Verify DOI presence** of bibliography items.
 - **Validate DOI existence** and download corresponding records when available.
 - **Compare citing sentences against cited articles** using NLI models to test that citing claims are correctly supported.
+- - **Generate training data for NLI models** Capture the decisions made by users in a JSON log.
 
 ## Overview
 
@@ -35,6 +36,8 @@ The workflow is composed of several modules that work together in a sequential p
 6. **Entailment Checking**
    - **nli-checking.py**: Uses Natural Language Inference (NLI) to evaluate whether there is supporting content in the cited record for the citing sentence.   
      *Gradio interface. Requires pasting the citing sentence, editing for consistency with NLI expectations, pasting of full text of TEI, model selection and rolling window size selection.*
+   - **nli-checking-extended.py**: Uses Natural Language Inference (NLI) to evaluate whether there is supporting content in the cited record for the citing sentence.   
+     *same as above with logging, contradiction and a framework to test the performance of NLI models*
 
 
 ## Integrated Workflow Explanation
@@ -60,7 +63,7 @@ The entire workflow operates as a cohesive, integrated pipeline:
    - Run **match-citing-to-cited.py**
   
 7. **Check entailment**
-   - Run **nli-checking.py** to iterate through citing sentences to see if there is supporting assertions in the cited records 
+   - Run **nli-checking(-extended).py** to iterate through citing sentences to see if there is supporting assertions in the cited records 
 
 
 ## Usage Instructions
@@ -72,7 +75,9 @@ The entire workflow operates as a cohesive, integrated pipeline:
     ```
 
 2. **Install Dependencies**:  
-   no requirements.txt yet...noted in info for each script
+   requirements.txt
+   Access to a GROBID API
 
-3. **Run the Workflow**:  
+4. **Run the Workflow**:
+   see documentation in each script for details  
 
