@@ -1,0 +1,21 @@
+# For Natural Language Inference (NLI) and deep learning tasks:
+torch>=1.7.0
+transformers>=4.0.0
+
+# For making HTTP requests and HTML/XML parsing:
+requests>=2.25.0
+beautifulsoup4>=4.9.0
+lxml>=4.6.0
+
+# For data manipulation and analysis:
+pandas>=1.1.0
+numpy>=1.19.0
+
+# For natural language processing utilities:
+nltk>=3.5
+
+# For PDF processing:
+PyPDF2>=1.26.0
+
+# For creating interactive web interfaces:
+gradio>=3.0.0
