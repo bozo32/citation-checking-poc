@@ -14,30 +14,29 @@ This repository is an integrated workflow for verifying the consistency and inte
 The workflow is composed of several modules that work together in a sequential pipeline:
 
 1. **Data Extraction**:  
-   - **grobid-folder.py**: Extracts structured bibliographic information and in-text citation markers from PDFs using GROBID.  
-     *Embedded documentation notes that this module standardizes the citation data for further analysis.*
+   - **grobid-folder.py**: Parses academic PDFs into tei.xml.  
+     *Processes PDF files in a specified folder using the Grobid API. For each PDF file found in the folder, the script sends the file to the Grobid API endpoint and retrieves the corresponding TEI XML which is saved in a new subfolder  /tei.*
 
 2. **Citation Matching**:  
-   - **match-cit-to-bib.py**: Ensures that every in-text citation found in the document has a corresponding entry in the bibliography.  
-     *The module’s embedded documentation describes its method for flagging mismatches.*
+   - **match-cit-to-bib.py**: Tests match between in-text citations and bibliography items.  
+     *Produces a .json file in a new folder /match-cit-bib from each tei.xml in /tei and creates a summary .csv placed in project home.*
 
 3. **Result Consolidation**:  
-   - **consolidate.py**: Uses Unpaywall, Crossref and OpenAlex to try and match bibliography items to DOIs. 
-     *If unpaywall reports a link, it records the link.*
+   - **consolidate.py**: Consolidates bibliography items for each tei.xml file in /tei and then tests if records exist. 
+     *Extracts bibliographic records, queries Crossref for a DOI using and related metadata using a fuzzy match, checks for the retrievability of the record using OpenAlex, Unpaywall, and a a HEAD request. Output is saved in /consolidation in detailed (.json) and summary (.csv) form.*
 
 4. **DOI Verification and Article Retrieval**:  
-   - **retrieve.py**: Checks each bibliography item to see if the DOI points to a record that exists.  
-     *Uses head from Crossref and Unpaywall. Has script for google scholar commented out*
+   - **retrieve.py**: Retrieves records found to be downloadable.  
+     *Uses .json files from step 3 to download retrievable records, renames to sanitized doi, saves the pdf to /citing_filename/PDF and converted to /citing_filename/tei.*
 
 5. **Contextual Verification**:  
-   - **match-citing-to-cited.py**: Matches citing sentences from the PDF with content from the cited articles.  
-     *Produces a CSV that lists citation id, citing sentence text and cited article filename.*
+   - **match-citing-to-cited.py**: Matches citing sentences to cited articles.  
+     *Savels a .csv in /citing_article_filename listing citing sentences and the corresponding filenames (sanitized doi) of retrieved cited records.*
 
 6. **Entailment Checking**
-   - **nli-checking.py**: Uses Natural Language Inference (NLI) to evaluate whether there is supporting content in the cited record for the citing sentence.   
+   - **nli-checking.py**: Uses Natural Language Inference (NLI) to evaluate whether there is entailing content in the cited record for the citing sentence.   
      *Gradio interface. Requires pasting the citing sentence, editing for consistency with NLI expectations, pasting of full text of TEI, model selection and rolling window size selection.*
-   - **nli-checking-extended.py**: Uses Natural Language Inference (NLI) to evaluate whether there is supporting content in the cited record for the citing sentence.   
-     *same as above with logging, contradiction and a framework to test the performance of NLI models*
+   - **nli-checking-extended.py**: Same as above with contradiction, logging to support fine tuning and a UI to support testing NLI model performance.
 
 
 ## Integrated Workflow Explanation
@@ -68,6 +67,8 @@ The entire workflow operates as a cohesive, integrated pipeline:
 
 ## Usage Instructions
 
+NOTE: requires access to GROBID
+
 1. **Clone the Repository**:
     ```bash
     git clone https://github.com/yourusername/your-repo-name.git
@@ -75,8 +76,9 @@ The entire workflow operates as a cohesive, integrated pipeline:
     ```
 
 2. **Install Dependencies**:  
-   requirements.txt
-   Access to a GROBID API
+    ```bash
+    pip install -r requirements.txt
+    ```
 
 4. **Run the Workflow**:
    see documentation in each script for details  
