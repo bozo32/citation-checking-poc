@@ -1,12 +1,13 @@
-# Integrated PDF Citation Verification Workflow
+# Citation Checking
 
-This repository is an integrated workflow for verifying the consistency and integrity of citations within and across academic records. The workflow is designed to:
+This repository contains rough examples of core functions in a workflow for confirming and, if used at scale, improving the integrity of citations in academic literature. It recognizes the academic literature as a complex set of ongoing conversations and artices as freeze-frames of their intersections. The workflow:
 
-- **Extract bibliographic and in-text citation data** from PDFs.
-- **Match in-text citations to bibliography entries**.
-- **Verify DOI presence** of bibliography items.
-- **Test existence of DOI indicated record** and download when available.
-- **Compare citing sentences to cited articles** using NLI models to test for support.
+- **Extracts bibliographic and in-text citation data** from records interpretable by GROBID (limited to GROBID interpretable files).
+- **Matches in-text citations to bibliography entries** which tests for citation/bibliography stuffing (constrained by parsing errors).
+- **Verifies existence of a DOI for each bibliography items** which tests for AI hallucinated bibliography items (needs expansion for systems other than DOI, fuzzy matching logic is immature).
+- **Tests for the existence of DOI indicated records** identifying records that have disappeared (DOI is, again, limited).
+- **Downloads accessible records** using unpaywall (very limited)
+- **Compare citing sentences to cited records** using NLI models to test for entailment. (requires alternatives for citation intention other than entailment, again limited to GROBID interpretable files)
 - **Capture the decisions made** in a JSON log to a) train NLI models, b) document integrity of the academic record.
 
 ## Overview
