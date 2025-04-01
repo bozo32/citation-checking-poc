@@ -1,3 +1,153 @@
+#!/usr/bin/env python3
+import os
+import glob
+import json
+import csv
+import argparse
+import logging
+import re
+from bs4 import BeautifulSoup
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+
+def get_base_name(filename):
+    """Return the base name of a file (without the '.tei.xml' extension)."""
+    base = os.path.basename(filename)
+    base = re.sub(r'\.tei\.xml$', '', base, flags=re.IGNORECASE)
+    return base
+
+def load_crossref_json(json_path):
+    """
+    Load the JSON file from the consolidation folder.
+    The JSON is expected to be either a list of records or a dict with a "records" key.
+    Each record should contain 'bib_item' and 'dl_filename' fields.
+    Returns a mapping from bib_item to dl_filename (or "missing" if empty).
+    """
+    try:
+        with open(json_path, "r", encoding="utf-8") as jf:
+            data = json.load(jf)
+            if isinstance(data, list):
+                records = data
+            else:
+                records = data.get("records", [])
+            mapping = {}
+            for rec in records:
+                bib_item = rec.get("bib_item", "").strip()
+                dl_filename = rec.get("dl_filename", "").strip()
+                if bib_item:
+                    mapping[bib_item] = dl_filename if dl_filename else "missing"
+            return mapping
+    except Exception as e:
+        logging.error(f"Error loading JSON file {json_path}: {e}")
+        return {}
+
+def extract_citing_sentences(tei_path):
+    """
+    Extract all <s> elements from the citing TEI file.
+    Returns a list of BeautifulSoup tags.
+    """
+    try:
+        with open(tei_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        soup = BeautifulSoup(content, "xml")
+        sentences = soup.find_all("s")
+        return sentences
+    except Exception as e:
+        logging.error(f"Error processing TEI file {tei_path}: {e}")
+        return []
+
+def extract_citations_from_sentence(s):
+    """
+    Given a BeautifulSoup <s> element, return a list of bib_ids 
+    extracted from all <ref> tags that have a "target" attribute.
+    The leading '#' (if present) is removed.
+    """
+    refs = s.find_all("ref", target=True)
+    bib_ids = []
+    for ref in refs:
+        target = ref.get("target", "")
+        if target.startswith("#"):
+            bib_ids.append(target[1:])
+        elif target:
+            bib_ids.append(target)
+    return bib_ids
+
+def write_csv(output_folder, base_name, rows):
+    """
+    Write the matching information into a CSV file named "{base_name}-matching.csv"
+    in the specified output folder.
+    """
+    os.makedirs(output_folder, exist_ok=True)
+    csv_filename = f"{base_name}-matching.csv"
+    csv_path = os.path.join(output_folder, csv_filename)
+    with open(csv_path, "w", newline="", encoding="utf-8") as csvfile:
+        fieldnames = ["bib_id", "citing_sentence", "cited_record"]
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in rows:
+            writer.writerow(row)
+    logging.info(f"Matching CSV saved to {csv_path}")
+
+def process_citing_file(tei_file, consolidation_folder, home_folder):
+    """
+    For a given citing TEI file, locate its corresponding JSON file in the
+    consolidation folder, extract all citation references from its <s> elements,
+    and write out a CSV mapping each bib_id to the downloaded file name.
+    """
+    base_name = get_base_name(tei_file)
+    json_pattern = os.path.join(consolidation_folder, f"{base_name}.tei-crossref.json")
+    json_files = glob.glob(json_pattern)
+    if not json_files:
+        logging.warning(f"No JSON file found for {tei_file} (expected: {json_pattern}). Skipping.")
+        return
+    json_path = json_files[0]
+    dl_mapping = load_crossref_json(json_path)
+    sentences = extract_citing_sentences(tei_file)
+    rows = []
+    for s in sentences:
+        # Use the raw string representation (with XML tags) as the citing sentence.
+        citing_sentence_raw = str(s)
+        bib_ids = extract_citations_from_sentence(s)
+        if bib_ids:
+            for bib_id in bib_ids:
+                cited_record = dl_mapping.get(bib_id, "missing")
+                rows.append({
+                    "bib_id": bib_id,
+                    "citing_sentence": citing_sentence_raw,
+                    "cited_record": cited_record
+                })
+    if rows:
+        # Create output folder named after the base name of the TEI file in the home folder.
+        output_folder = os.path.join(home_folder, base_name)
+        write_csv(output_folder, base_name, rows)
+    else:
+        logging.info(f"No citing sentences with citation references found in {tei_file}.")
+
+def main():
+    parser = argparse.ArgumentParser(description="Match citing sentences to downloaded cited records.")
+    parser.add_argument("-f", "--folder", required=True,
+                        help="Home folder containing subfolders 'tei' and 'consolidation'.")
+    args = parser.parse_args()
+    home_folder = os.path.abspath(args.folder)
+    tei_folder = os.path.join(home_folder, "tei")
+    consolidation_folder = os.path.join(home_folder, "consolidation")
+    if not os.path.isdir(tei_folder):
+        logging.error(f"TEI folder not found at {tei_folder}")
+        return
+    if not os.path.isdir(consolidation_folder):
+        logging.error(f"Consolidation folder not found at {consolidation_folder}")
+        return
+    tei_files = glob.glob(os.path.join(tei_folder, "*.tei.xml"))
+    if not tei_files:
+        logging.info(f"No TEI files found in {tei_folder}")
+        return
+    for tei_file in tei_files:
+        logging.info(f"Processing citing TEI file: {tei_file}")
+        process_citing_file(tei_file, consolidation_folder, home_folder)
+
+if __name__ == "__main__":
+    main()
+
 """
 Matching Script Documentation
 ------------------------------
