@@ -11,4 +11,8 @@ __pycache__/
 *.meta.pkl
 output.json
 tmp.*
+*.pdf
+*.xml
+**/__pycache__/
+**/*.py[cod]
 # anything else you don’t want under source control
