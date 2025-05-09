@@ -1,0 +1,15 @@
+pandas
+lxml
+pypdf
+streamlit
+fastapi
+uvicorn
+sentence-transformers
+faiss-cpu
+python-dotenv
+openai
+tqdm
+
+pymupdf
+pytesseract
+pillow
