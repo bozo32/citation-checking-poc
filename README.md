@@ -34,7 +34,7 @@ The workflow is composed of several modules that work together in a sequential p
    - **match-citing-to-cited.py**: Matches citing sentences to cited articles.  
      *Savels a .csv in /citing_article_filename listing citing sentences and the corresponding filenames (sanitized doi) of retrieved cited records.*
 
-6. **Entailment Checking**
+6. **Entailment Checking (quite broken...work on this stage is happening [ here ](https://github.com/bozo32/blablador-poc)**
    - **nli-checking.py**: Uses Natural Language Inference (NLI) to evaluate whether there is entailing content in the cited record for the citing sentence.   
      *Gradio interface. Requires pasting the citing sentence, editing for consistency with NLI expectations, pasting of full text of TEI, model selection and rolling window size selection.*
    - **nli-checking-extended.py**: Same as above with contradiction, logging to support fine tuning and a UI to support testing NLI model performance.
